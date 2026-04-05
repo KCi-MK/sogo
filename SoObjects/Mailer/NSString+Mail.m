@@ -585,7 +585,7 @@
   return [messageID lowercaseString];
 }
 
-- (NSString *) htmlToText
+/* - (NSString *) htmlToText
 {
   _SOGoHTMLContentHandler *handler;
   id <NSObject, SaxXMLReader> parser;
@@ -601,7 +601,33 @@
 
   return [handler result];
 }
+*/
 
+// MK 06.04.2026 GenMoji fix
+- (NSString *) htmlToText
+{
+  _SOGoHTMLContentHandler *handler;
+  id <NSObject, SaxXMLReader> parser;
+  NSData *d;
+  NSString *htmlDoc;
+
+  parser = [[SaxXMLReaderFactory standardXMLReaderFactory]
+             createXMLReaderForMimeType: @"text/html"];
+  handler = [_SOGoHTMLContentHandler htmlToTextContentHandler];
+  [parser setContentHandler: handler];
+
+  htmlDoc = [NSString stringWithFormat:
+               @"<html><head>"
+                "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">"
+               @"</head><body>%@</body></html>", self];
+
+  d = [htmlDoc dataUsingEncoding: NSUTF8StringEncoding];
+  [parser parseFromSource: d];
+
+  return [handler result];
+}
+
+/*
 - (NSString *) htmlByExtractingImages: (NSMutableArray *) theImages
 {
   _SOGoHTMLContentHandler *handler;
@@ -616,6 +642,32 @@
   [parser setContentHandler: handler];
 
   d = [self dataUsingEncoding: NSUTF8StringEncoding];
+  [parser parseFromSource: d];
+
+  return [handler result];
+}
+*/
+
+// MK 06.04.2026 GenMoji fix
+- (NSString *) htmlByExtractingImages: (NSMutableArray *) theImages
+{
+  _SOGoHTMLContentHandler *handler;
+  id <NSObject, SaxXMLReader> parser;
+  NSData *d;
+  NSString *htmlDoc;
+
+  parser = [[SaxXMLReaderFactory standardXMLReaderFactory]
+             createXMLReaderForMimeType: @"text/html"];
+  handler = [_SOGoHTMLContentHandler sanitizerContentHandler];
+  [handler setImages: theImages];
+  [parser setContentHandler: handler];
+
+  htmlDoc = [NSString stringWithFormat:
+               @"<html><head>"
+                "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">"
+               @"</head><body>%@</body></html>", self];
+
+  d = [htmlDoc dataUsingEncoding: NSUTF8StringEncoding];
   [parser parseFromSource: d];
 
   return [handler result];
