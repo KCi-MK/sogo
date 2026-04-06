@@ -849,11 +849,26 @@ static NSString *_sanitizeHtmlForDisplay(NSString *content)
   // Some broken email messages have some additionnal content outside the main HTML tags which are
   // ignored by libxml.
   // We surround the whole part with additional HTML tags to render all content.
+/*
   htmlContent = [NSMutableData dataWithBytes: "<html>" length: 6];
   [htmlContent appendData: preparsedContent];
   [htmlContent appendBytes: "</html>" length: 7];
   preparsedContent = (NSData *)htmlContent;
+*/
+  {
+    NSString *prefix, *suffix;
 
+    prefix = @"<html><head>"
+              "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">"
+             "</head><body>";
+    suffix = @"</body></html>";
+
+    htmlContent = [NSMutableData data];
+    [htmlContent appendData: [prefix dataUsingEncoding: NSASCIIStringEncoding]];
+    [htmlContent appendData: preparsedContent];
+    [htmlContent appendData: [suffix dataUsingEncoding: NSASCIIStringEncoding]];
+    preparsedContent = (NSData *)htmlContent;
+  }
   // We check if we got an unsupported charset. If so
   // we convert everything to UTF-16{LE,BE} so it passes
   // in libxml2 and also in characters: length: defined
